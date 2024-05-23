@@ -8,10 +8,11 @@
 - Design: XML
 - Programming Language: Kotlin
 - Architecture:MVVM
+- Database: Realm 
 
 ## Third-Party Libraries
 - com.airbnb.android:lottie (for Image File Loading )
-- 
+
 ## To get started with the project
 1. Clone the repository to their local machine
 2. Open the project in Android Studio
