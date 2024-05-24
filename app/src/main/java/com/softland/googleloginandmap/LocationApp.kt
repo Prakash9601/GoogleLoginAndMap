@@ -14,7 +14,7 @@ class LocationApp: Application() {
         super.onCreate()
         Realm.init(this)
         val config: RealmConfiguration =
-            RealmConfiguration.Builder().name("Location").schemaVersion(1)
+            RealmConfiguration.Builder().name("Location.db").schemaVersion(1)
                 .allowQueriesOnUiThread(true)
                 .allowWritesOnUiThread(true)
                 .build()
