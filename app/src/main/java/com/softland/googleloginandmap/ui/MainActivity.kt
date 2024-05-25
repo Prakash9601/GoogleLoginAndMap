@@ -133,8 +133,7 @@ class MainActivity : AppCompatActivity() {
             != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(
                 this,
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                RC_LOCATION_PERMISSION
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.POST_NOTIFICATIONS,Manifest.permission.FOREGROUND_SERVICE_LOCATION,Manifest.permission.FOREGROUND_SERVICE), RC_LOCATION_PERMISSION
             )
         }
 
