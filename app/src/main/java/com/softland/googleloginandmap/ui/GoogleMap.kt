@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.content.IntentSender
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.graphics.Color
@@ -16,11 +17,14 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
+import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.LocationSettingsRequest
+import com.google.android.gms.location.LocationSettingsResponse
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -29,6 +33,8 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.PolygonOptions
 import com.google.android.gms.maps.model.PolylineOptions
+import com.google.android.gms.tasks.Task
+import com.google.android.material.snackbar.Snackbar
 import com.softland.googleloginandmap.R
 import com.softland.googleloginandmap.databinding.ActivityGoogleMapBinding
 import com.softland.googleloginandmap.viewmodel.LocationViewModel
@@ -58,6 +64,7 @@ class GoogleMap : AppCompatActivity() , OnMapReadyCallback {
         super.onCreate(savedInstanceState)
         binding = ActivityGoogleMapBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        checkAndPromptForGPS()
 
         // Initialize fusedLocationClient
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
@@ -181,8 +188,15 @@ class GoogleMap : AppCompatActivity() , OnMapReadyCallback {
         if (requestCode == 100) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 // Permission granted, enable location layer on map and start location updates
-                if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                    && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                if (ContextCompat.checkSelfPermission(
+                        this,
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED
+                    && ContextCompat.checkSelfPermission(
+                        this,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
                     return
                 }
                 mMap.isMyLocationEnabled = true
@@ -190,6 +204,20 @@ class GoogleMap : AppCompatActivity() , OnMapReadyCallback {
             } else {
                 // Permission denied, show a toast message
                 Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        if (requestCode == MainActivity.REQUEST_CHECK_SETTINGS) {
+            when (requestCode) {
+                RESULT_OK -> {
+                    // User agreed to make required location settings changes.
+                    Toast.makeText(this, "GPS enabled", Toast.LENGTH_SHORT).show()
+                }
+
+                RESULT_CANCELED -> {
+                    // User chose not to make required location settings changes.
+                    Toast.makeText(this, "GPS not enabled", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
@@ -201,6 +229,38 @@ class GoogleMap : AppCompatActivity() , OnMapReadyCallback {
             putExtra("DISPLAY_NAME", displayName)
             startActivity(this)
             finish() // Optional: finish MainActivity so the user can't navigate back to it
+        }
+    }
+
+
+    private fun checkAndPromptForGPS() {
+        val locationRequest = LocationRequest.create().apply {
+            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        }
+        val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
+        val client = LocationServices.getSettingsClient(this)
+        val task: Task<LocationSettingsResponse> = client.checkLocationSettings(builder.build())
+        task.addOnSuccessListener { response ->
+            val states = response.locationSettingsStates
+            if (states?.isLocationPresent == true && states.isLocationUsable) {
+                // GPS is already enabled
+            } else {
+                // GPS is not enabled but this block won't be called due to addOnSuccessListener
+            }
+        }
+
+        task.addOnFailureListener { exception ->
+            if (exception is ResolvableApiException) {
+                // Location settings are not satisfied, but this can be fixed
+                // by showing the user a dialog.
+                try {
+                    exception.startResolutionForResult(this, MainActivity.REQUEST_CHECK_SETTINGS)
+                } catch (sendEx: IntentSender.SendIntentException) {
+                    // Ignore the error.
+                }
+            } else {
+                Snackbar.make(binding.root, "Location settings are inadequate, and cannot be fixed here. Fix in Settings.", Snackbar.LENGTH_LONG).show()
+            }
         }
     }
 

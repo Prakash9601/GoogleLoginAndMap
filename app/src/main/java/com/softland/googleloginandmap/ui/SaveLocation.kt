@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
+import android.content.IntentSender
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -15,6 +16,13 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
+import com.google.android.gms.common.api.ResolvableApiException
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.LocationSettingsRequest
+import com.google.android.gms.location.LocationSettingsResponse
+import com.google.android.gms.tasks.Task
+import com.google.android.material.snackbar.Snackbar
 import com.softland.googleloginandmap.adapter.LocationAdapter
 import com.softland.googleloginandmap.databinding.ActivitySaveLocationBinding
 import com.softland.googleloginandmap.viewmodel.LocationViewModel
@@ -33,6 +41,8 @@ class SaveLocation : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivitySaveLocationBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        checkAndPromptForGPS()
+
 
         val layoutManager = LinearLayoutManager(this)
         layoutManager.orientation = LinearLayoutManager.VERTICAL
@@ -97,6 +107,20 @@ class SaveLocation : AppCompatActivity() {
                 Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show()
             }
         }
+
+        if (requestCode == MainActivity.REQUEST_CHECK_SETTINGS) {
+            when (requestCode) {
+                RESULT_OK -> {
+                    // User agreed to make required location settings changes.
+                    Toast.makeText(this, "GPS enabled", Toast.LENGTH_SHORT).show()
+                }
+
+                RESULT_CANCELED -> {
+                    // User chose not to make required location settings changes.
+                    Toast.makeText(this, "GPS not enabled", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 
     private fun showLogoutConfirmationDialog() {
@@ -129,6 +153,37 @@ class SaveLocation : AppCompatActivity() {
         Intent(applicationContext, MainActivity::class.java).apply {
             startActivity(this)
             finish()
+        }
+    }
+
+    private fun checkAndPromptForGPS() {
+        val locationRequest = LocationRequest.create().apply {
+            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        }
+        val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
+        val client = LocationServices.getSettingsClient(this)
+        val task: Task<LocationSettingsResponse> = client.checkLocationSettings(builder.build())
+        task.addOnSuccessListener { response ->
+            val states = response.locationSettingsStates
+            if (states?.isLocationPresent == true && states.isLocationUsable) {
+                // GPS is already enabled
+            } else {
+                // GPS is not enabled but this block won't be called due to addOnSuccessListener
+            }
+        }
+
+        task.addOnFailureListener { exception ->
+            if (exception is ResolvableApiException) {
+                // Location settings are not satisfied, but this can be fixed
+                // by showing the user a dialog.
+                try {
+                    exception.startResolutionForResult(this, MainActivity.REQUEST_CHECK_SETTINGS)
+                } catch (sendEx: IntentSender.SendIntentException) {
+                    // Ignore the error.
+                }
+            } else {
+                Snackbar.make(binding.root, "Location settings are inadequate, and cannot be fixed here. Fix in Settings.", Snackbar.LENGTH_LONG).show()
+            }
         }
     }
 }

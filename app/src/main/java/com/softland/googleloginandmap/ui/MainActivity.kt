@@ -6,9 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentSender
 import android.content.SharedPreferences
-import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
-import android.content.pm.PackageManager.NameNotFoundException
 import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
@@ -38,7 +36,7 @@ class MainActivity : AppCompatActivity() {
         private const val RC_LOCATION_PERMISSION = 1
         private const val RC_NOTIFICATION_PERMISSION = 2
         const val RC_SIGN_IN = 9001
-        private const val REQUEST_CHECK_SETTINGS = 100
+        const val REQUEST_CHECK_SETTINGS = 100
 
     }
     private lateinit var viewModel: MainActivityViewModel
@@ -188,11 +186,9 @@ class MainActivity : AppCompatActivity() {
         val locationRequest = LocationRequest.create().apply {
             priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         }
-
         val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
         val client = LocationServices.getSettingsClient(this)
         val task: Task<LocationSettingsResponse> = client.checkLocationSettings(builder.build())
-
         task.addOnSuccessListener { response ->
             val states = response.locationSettingsStates
             if (states?.isLocationPresent == true && states.isLocationUsable) {
