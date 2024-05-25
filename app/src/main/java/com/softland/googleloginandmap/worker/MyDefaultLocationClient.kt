@@ -36,7 +36,7 @@ class MyDefaultLocationClient(
             }
             val request = LocationRequest.Builder(interval)
                 .setMinUpdateDistanceMeters(0f)
-                .setIntervalMillis(900000)  // 15 minutes in milliseconds
+                .setIntervalMillis(10000)  // 15 minutes in milliseconds
                 .setWaitForAccurateLocation(true)
                 .build()
             val locationCallback = object : LocationCallback() {

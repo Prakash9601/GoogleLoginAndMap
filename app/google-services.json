@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "329989568700",
+    "project_id": "loginandmap-5ace1",
+    "storage_bucket": "loginandmap-5ace1.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:329989568700:android:fa80f996103edb8b4ef8b9",
+        "android_client_info": {
+          "package_name": "com.softland.googleloginandmap"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDajDvKODUvVucxjogmlOaZK9eHkSvqdxY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
