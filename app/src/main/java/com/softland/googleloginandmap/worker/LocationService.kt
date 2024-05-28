@@ -67,7 +67,6 @@ class LocationService: Service() {
                 val long = it.longitude.toString()
                 val updateNotification = notification.setContentText("Location: ($lat, $long)")
                 notificationManager?.notify(1, updateNotification.build())
-
                 insertLocationData(it, displayName)
             }.launchIn(serviceScope)
 
