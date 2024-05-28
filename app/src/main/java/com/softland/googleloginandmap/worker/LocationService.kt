@@ -71,11 +71,11 @@ class LocationService: Service() {
                 insertLocationData(it, displayName)
             }.launchIn(serviceScope)
 
-        startForeground(1, notification.build())
+        ServiceCompat.startForeground(this, 1, notification.build(), FOREGROUND_SERVICE_TYPE_LOCATION)
     }
 
     private fun stop(){
-        stopForeground(true)
+        stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
 
